@@ -1,0 +1,1426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Fawad Digital Hub | Premium Digital Ecosystem</title>
+  <meta name="description" content="Fawad Digital Hub – 700+ premium digital tools. ChatGPT, Adobe, Envato, Canva, and more. Minimal cost, maximum power.">
+  
+  <!-- Premium Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simple-icons@v10/font/simple-icons.min.css">
+  
+  <!-- Three.js for 3D Background -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Inter', 'Outfit', sans-serif;
+      background: #050708;
+      color: #f0f4fa;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* ========== 3D CANVAS BACKGROUND ========== */
+    #canvas-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      z-index: -1;
+      opacity: 0.35;
+      pointer-events: none;
+    }
+
+    /* ========== PROFESSIONAL LOADING SCREEN ========== */
+    #global-loader {
+      position: fixed;
+      inset: 0;
+      background: #030405;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100000;
+      transition: opacity 1s cubic-bezier(0.77, 0, 0.175, 1), visibility 1s;
+    }
+
+    .loader-container {
+      text-align: center;
+      perspective: 1000px;
+    }
+
+    .loader-3d-text {
+      font-size: 4.5rem;
+      font-weight: 800;
+      letter-spacing: 12px;
+      background: linear-gradient(135deg, #FFD700 0%, #FFC857 30%, #4a9eff 70%, #a0c8ff 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      filter: drop-shadow(0 0 40px #3a8cff66);
+      margin-bottom: 20px;
+      animation: textFloat 3s ease-in-out infinite;
+      transform-style: preserve-3d;
+    }
+
+    @keyframes textFloat {
+      0%, 100% { transform: translateY(0) rotateX(0deg); }
+      50% { transform: translateY(-15px) rotateX(5deg); }
+    }
+
+    .loader-sub {
+      font-size: 1.1rem;
+      letter-spacing: 14px;
+      color: #9bb5d4;
+      opacity: 0.85;
+      font-weight: 400;
+      text-transform: uppercase;
+      margin-bottom: 40px;
+    }
+
+    .loader-progress {
+      width: 250px;
+      height: 3px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 10px;
+      margin: 0 auto;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .loader-progress-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #FFD700, #4a9eff, #FFD700);
+      background-size: 200% 100%;
+      animation: gradientMove 2s linear infinite, progressFill 1.8s ease-out forwards;
+      border-radius: 10px;
+      box-shadow: 0 0 20px #4a9eff;
+    }
+
+    @keyframes gradientMove {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 200% 50%; }
+    }
+
+    @keyframes progressFill {
+      0% { width: 0%; }
+      100% { width: 100%; }
+    }
+
+    .loader-percentage {
+      color: #FFD966;
+      margin-top: 20px;
+      font-size: 1.2rem;
+      font-weight: 600;
+      letter-spacing: 4px;
+    }
+
+    body.loaded #global-loader {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    /* ========== MAIN CONTENT ========== */
+    #app-content {
+      opacity: 0;
+      transition: opacity 1.2s ease 0.3s;
+    }
+
+    body.loaded #app-content {
+      opacity: 1;
+    }
+
+    /* ========== 3D SIDEBAR ========== */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: -400px;
+      width: 380px;
+      height: 100vh;
+      background: rgba(8, 14, 20, 0.95);
+      backdrop-filter: blur(35px) saturate(200%);
+      -webkit-backdrop-filter: blur(35px);
+      border-right: 1px solid rgba(255, 215, 0, 0.3);
+      box-shadow: 20px 0 60px rgba(0,0,0,0.8), 0 0 60px #1e90ff1a;
+      z-index: 9998;
+      transition: left 0.5s cubic-bezier(0.77, 0, 0.175, 1);
+      padding: 60px 36px;
+      display: flex;
+      flex-direction: column;
+      transform-style: preserve-3d;
+    }
+
+    .sidebar.open {
+      left: 0;
+    }
+
+    .sidebar-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(8px);
+      z-index: 9997;
+      opacity: 0;
+      visibility: hidden;
+      transition: 0.4s;
+    }
+
+    .sidebar-overlay.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .sidebar-header {
+      margin-bottom: 50px;
+    }
+
+    .sidebar-logo {
+      font-size: 2.2rem;
+      font-weight: 700;
+      background: linear-gradient(145deg, #FFD700, #fff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .sidebar-menu {
+      list-style: none;
+      flex: 1;
+    }
+
+    .sidebar-menu li {
+      margin-bottom: 24px;
+    }
+
+    .sidebar-menu a {
+      color: #eef2f8;
+      text-decoration: none;
+      font-size: 1.5rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 16px 24px;
+      border-radius: 18px;
+      transition: all 0.3s cubic-bezier(0.77, 0, 0.175, 1);
+      border-left: 4px solid transparent;
+      background: linear-gradient(90deg, transparent 0%, transparent 100%);
+      transform-style: preserve-3d;
+    }
+
+    .sidebar-menu a i {
+      width: 36px;
+      color: #FFD966;
+      font-size: 1.4rem;
+    }
+
+    .sidebar-menu a:hover {
+      background: linear-gradient(90deg, rgba(255,215,0,0.1) 0%, rgba(30,144,255,0.05) 100%);
+      border-left: 4px solid #FFD700;
+      color: white;
+      text-shadow: 0 0 15px #1e90ff;
+      transform: translateX(10px) translateZ(10px);
+    }
+
+    /* ========== 3D MENU TOGGLE ========== */
+    .menu-toggle-btn {
+      position: fixed;
+      top: 30px;
+      left: 30px;
+      z-index: 9999;
+      background: rgba(10, 18, 28, 0.7);
+      backdrop-filter: blur(20px);
+      border: 1.5px solid rgba(255, 215, 0, 0.4);
+      color: #FFD966;
+      width: 65px;
+      height: 65px;
+      border-radius: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      cursor: pointer;
+      box-shadow: 0 15px 35px #00000080, 0 0 30px #1e90ff40, inset 0 1px 0 rgba(255,255,255,0.1);
+      transition: all 0.3s cubic-bezier(0.77, 0, 0.175, 1);
+      transform-style: preserve-3d;
+    }
+
+    .menu-toggle-btn:hover {
+      border-color: #FFD700;
+      box-shadow: 0 0 50px #1e90ff, 0 15px 35px #000, inset 0 1px 0 rgba(255,255,255,0.2);
+      color: white;
+      transform: scale(1.05) translateZ(10px);
+    }
+
+    /* ========== 3D POPUP ========== */
+    .popup-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(15px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100001;
+      visibility: hidden;
+      opacity: 0;
+      transition: 0.4s;
+      padding: 24px;
+    }
+
+    .popup-overlay.show {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    .popup-card {
+      max-width: 560px;
+      width: 100%;
+      background: rgba(12, 20, 30, 0.85);
+      backdrop-filter: blur(40px);
+      border: 1.5px solid rgba(255, 215, 0, 0.5);
+      border-radius: 56px;
+      padding: 56px 48px;
+      text-align: center;
+      box-shadow: 0 40px 80px #000000d0, 0 0 80px #1e90ff50, inset 0 1px 0 rgba(255,255,255,0.1);
+      transform: scale(0.9) translateZ(-20px);
+      transition: transform 0.4s cubic-bezier(0.77, 0, 0.175, 1);
+      transform-style: preserve-3d;
+    }
+
+    .popup-overlay.show .popup-card {
+      transform: scale(1) translateZ(0);
+    }
+
+    .popup-title {
+      font-size: 3rem;
+      font-weight: 800;
+      background: linear-gradient(145deg, #FFD700, #FFB347, #6eb5ff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin-bottom: 24px;
+      filter: drop-shadow(0 0 30px #1e90ff);
+    }
+
+    .popup-message {
+      color: #d6e3f5;
+      font-size: 1.2rem;
+      margin-bottom: 44px;
+      line-height: 1.8;
+    }
+
+    .popup-btn {
+      background: linear-gradient(145deg, #1a2a38, #0f1a24);
+      border: 2px solid #25D366;
+      color: white;
+      padding: 22px 44px;
+      border-radius: 60px;
+      font-weight: 700;
+      font-size: 1.4rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 0 45px #25D36660, 0 10px 25px black, inset 0 1px 0 rgba(255,255,255,0.1);
+      cursor: pointer;
+      transition: all 0.3s;
+      transform-style: preserve-3d;
+    }
+
+    .popup-btn i {
+      font-size: 2rem;
+      color: #25D366;
+    }
+
+    .popup-btn:hover {
+      background: #1e3345;
+      box-shadow: 0 0 60px #25D366, 0 0 40px gold, inset 0 1px 0 rgba(255,255,255,0.2);
+      border-color: gold;
+      transform: scale(1.02) translateZ(5px);
+    }
+
+    .popup-close {
+      margin-top: 30px;
+      color: #aaa;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: 0.2s;
+    }
+
+    .popup-close:hover {
+      color: #FFD966;
+    }
+
+    /* ========== LAYOUT ========== */
+    .full-width {
+      width: 100%;
+      max-width: 1600px;
+      margin-left: auto;
+      margin-right: auto;
+      padding-left: clamp(32px, 8vw, 80px);
+      padding-right: clamp(32px, 8vw, 80px);
+    }
+
+    section {
+      padding: 100px 0;
+      position: relative;
+    }
+
+    .section-header {
+      margin-bottom: 80px;
+      text-align: center;
+    }
+
+    .section-title {
+      font-size: 3.8rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #ffffff, #FFD966, #a0c8ff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      display: inline-block;
+      border-left: 10px solid #FFD700;
+      padding-left: 48px;
+      text-shadow: 0 0 50px #1e90ff66;
+      margin-bottom: 20px;
+      transform-style: preserve-3d;
+    }
+
+    /* ========== 3D HERO SECTION ========== */
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 80px;
+      align-items: center;
+      min-height: 85vh;
+      padding-top: 60px;
+    }
+
+    .hero-left {
+      transform-style: preserve-3d;
+      animation: slideInLeft 1s ease-out;
+    }
+
+    @keyframes slideInLeft {
+      from { opacity: 0; transform: translateX(-50px) translateZ(-50px); }
+      to { opacity: 1; transform: translateX(0) translateZ(0); }
+    }
+
+    .hero-left h1 {
+      font-size: 5.5rem;
+      font-weight: 800;
+      line-height: 1.15;
+      background: linear-gradient(145deg, #FFD700, #ffffff, #7eb8ff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin-bottom: 28px;
+      text-shadow: 0 0 60px #1e90ff;
+      filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
+    }
+
+    .hero-desc {
+      font-size: 1.6rem;
+      color: #c6daf5;
+      margin-bottom: 48px;
+      max-width: 550px;
+    }
+
+    .hero-right {
+      border-radius: 48px;
+      overflow: hidden;
+      box-shadow: 0 50px 80px -20px #000, 0 0 0 1.5px rgba(255,215,0,0.4), 0 0 80px #1e90ff40;
+      transform-style: preserve-3d;
+      animation: slideInRight 1s ease-out;
+    }
+
+    @keyframes slideInRight {
+      from { opacity: 0; transform: translateX(50px) translateZ(-50px); }
+      to { opacity: 1; transform: translateX(0) translateZ(0); }
+    }
+
+    .hero-right img {
+      width: 100%;
+      height: auto;
+      display: block;
+      filter: brightness(1.08) contrast(1.1);
+    }
+
+    /* ========== 3D TOOLS GRID ========== */
+    .tools-wrapper {
+      display: flex;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 320px);
+      gap: 40px;
+      justify-content: center;
+      margin: 0 auto;
+    }
+
+    .tool-card {
+      background: rgba(15, 24, 34, 0.55);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1.5px solid rgba(255, 215, 0, 0.2);
+      border-radius: 40px;
+      padding: 48px 24px 36px;
+      text-align: center;
+      transition: all 0.4s cubic-bezier(0.77, 0, 0.175, 1);
+      box-shadow: 0 25px 40px -15px #000000b0, inset 0 1px 0 rgba(255,255,255,0.05);
+      cursor: pointer;
+      width: 320px;
+      transform-style: preserve-3d;
+      animation: cardFadeIn 0.8s ease-out forwards;
+      opacity: 0;
+    }
+
+    @keyframes cardFadeIn {
+      from { opacity: 0; transform: translateY(30px) translateZ(-20px); }
+      to { opacity: 1; transform: translateY(0) translateZ(0); }
+    }
+
+    .tool-card:nth-child(1) { animation-delay: 0.05s; }
+    .tool-card:nth-child(2) { animation-delay: 0.1s; }
+    .tool-card:nth-child(3) { animation-delay: 0.15s; }
+    .tool-card:nth-child(4) { animation-delay: 0.2s; }
+    .tool-card:nth-child(5) { animation-delay: 0.25s; }
+    .tool-card:nth-child(6) { animation-delay: 0.3s; }
+    .tool-card:nth-child(7) { animation-delay: 0.35s; }
+    .tool-card:nth-child(8) { animation-delay: 0.4s; }
+
+    .tool-card:hover {
+      transform: scale(1.05) translateY(-12px) translateZ(20px);
+      border-color: #FFD700;
+      box-shadow: 0 0 60px #1e90ff80, 0 30px 50px -15px black, inset 0 1px 0 rgba(255,255,255,0.15);
+      background: rgba(25, 40, 55, 0.7);
+    }
+
+    .tool-logo {
+      font-size: 4.5rem;
+      margin-bottom: 24px;
+      filter: drop-shadow(0 10px 15px #00000080);
+      transition: all 0.3s;
+    }
+
+    .tool-card:hover .tool-logo {
+      filter: drop-shadow(0 0 30px #7fc9ff);
+      transform: scale(1.05) translateZ(10px);
+    }
+
+    .tool-name {
+      font-size: 1.7rem;
+      font-weight: 700;
+      background: linear-gradient(145deg, #f0e6d2, #FFD966);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      letter-spacing: -0.01em;
+    }
+
+    .tool-badge {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 6px 16px;
+      background: rgba(30,144,255,0.15);
+      border-radius: 30px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #a0c8ff;
+      border: 1px solid rgba(255,215,0,0.2);
+    }
+
+    .more-card .tool-logo {
+      font-size: 3.5rem;
+    }
+
+    /* ========== FEATURES SECTION ========== */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 50px;
+      margin-top: 50px;
+    }
+
+    .feature-card {
+      background: rgba(15, 24, 34, 0.45);
+      backdrop-filter: blur(20px);
+      border: 1.5px solid rgba(255, 215, 0, 0.15);
+      border-radius: 40px;
+      padding: 52px 40px;
+      text-align: center;
+      transition: all 0.4s cubic-bezier(0.77, 0, 0.175, 1);
+      transform-style: preserve-3d;
+    }
+
+    .feature-card:hover {
+      border-color: #FFD700;
+      box-shadow: 0 0 50px #1e90ff40, inset 0 1px 0 rgba(255,255,255,0.1);
+      transform: translateY(-10px) translateZ(15px);
+    }
+
+    .feature-icon {
+      font-size: 4.5rem;
+      color: #FFD966;
+      margin-bottom: 30px;
+      filter: drop-shadow(0 0 30px #FFD70040);
+    }
+
+    .feature-card h3 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+      background: linear-gradient(145deg, #fff, #FFD966);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .feature-card p {
+      color: #b8cef0;
+      font-size: 1.15rem;
+      line-height: 1.8;
+    }
+
+    /* ========== STATS ========== */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 40px;
+      margin: 60px 0;
+    }
+
+    .stat-item {
+      text-align: center;
+      padding: 45px 30px;
+      background: rgba(15, 24, 34, 0.35);
+      backdrop-filter: blur(15px);
+      border-radius: 40px;
+      border: 1.5px solid rgba(255,215,0,0.15);
+      transform-style: preserve-3d;
+      transition: 0.3s;
+    }
+
+    .stat-item:hover {
+      border-color: #FFD70060;
+      box-shadow: 0 0 40px #1e90ff30;
+      transform: translateZ(10px);
+    }
+
+    .stat-number {
+      font-size: 4.5rem;
+      font-weight: 800;
+      background: linear-gradient(145deg, #FFD700, #fff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .stat-label {
+      font-size: 1.2rem;
+      color: #a0bcdd;
+      margin-top: 12px;
+      font-weight: 500;
+    }
+
+    /* ========== ABOUT BOX ========== */
+    .about-preview-box {
+      background: rgba(12, 20, 30, 0.55);
+      backdrop-filter: blur(25px);
+      border: 1.5px solid rgba(255,215,0,0.25);
+      border-radius: 56px;
+      padding: 72px 64px;
+      text-align: center;
+      transform-style: preserve-3d;
+      box-shadow: 0 40px 70px #00000080, inset 0 1px 0 rgba(255,255,255,0.05);
+    }
+
+    .about-preview-box h3 {
+      font-size: 2.8rem;
+      margin-bottom: 36px;
+      background: linear-gradient(145deg, #FFD966, #fff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .about-preview-box p {
+      font-size: 1.35rem;
+      color: #d0e0f5;
+      max-width: 1000px;
+      margin: 0 auto;
+      line-height: 1.9;
+    }
+
+    .tag-container {
+      margin-top: 48px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 16px;
+    }
+
+    .premium-tag {
+      background: rgba(30, 144, 255, 0.12);
+      padding: 16px 36px;
+      border-radius: 50px;
+      border: 1.5px solid rgba(255, 215, 0, 0.35);
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: #e0ecff;
+      backdrop-filter: blur(10px);
+      transition: 0.3s;
+    }
+
+    .premium-tag:hover {
+      border-color: #FFD700;
+      background: rgba(30, 144, 255, 0.2);
+      transform: scale(1.05);
+    }
+
+    /* ========== PAGES ========== */
+    .glass-panel {
+      background: rgba(12, 20, 30, 0.55);
+      backdrop-filter: blur(25px);
+      border: 1.5px solid rgba(255,215,0,0.25);
+      border-radius: 56px;
+      padding: 72px 72px;
+      box-shadow: 0 40px 70px #00000080, inset 0 1px 0 rgba(255,255,255,0.05);
+      max-width: 1200px;
+      margin: 0 auto;
+      transform-style: preserve-3d;
+    }
+
+    .about-text {
+      font-size: 1.3rem;
+      color: #d0e0f5;
+      line-height: 1.9;
+    }
+
+    .about-text strong {
+      color: #FFD966;
+    }
+
+    .contact-block {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      font-size: 2.6rem;
+      font-weight: 700;
+    }
+
+    .contact-block i {
+      color: #25D366;
+      font-size: 4rem;
+      filter: drop-shadow(0 0 20px #25D366);
+    }
+
+    /* ========== FOOTER ========== */
+    .premium-footer {
+      background: rgba(8, 14, 20, 0.8);
+      backdrop-filter: blur(25px);
+      border-top: 1.5px solid rgba(255, 215, 0, 0.25);
+      padding: 70px 0 40px;
+      margin-top: 100px;
+    }
+
+    .footer-content {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 60px;
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 0 clamp(32px, 8vw, 80px);
+    }
+
+    .footer-brand h3 {
+      font-size: 2.4rem;
+      font-weight: 800;
+      background: linear-gradient(145deg, #FFD700, #fff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin-bottom: 24px;
+    }
+
+    .footer-brand p {
+      color: #9bb5d4;
+      margin-bottom: 24px;
+      font-size: 1.15rem;
+    }
+
+    .footer-links h4 {
+      color: #FFD966;
+      font-size: 1.4rem;
+      margin-bottom: 28px;
+    }
+
+    .footer-links ul {
+      list-style: none;
+    }
+
+    .footer-links li {
+      margin-bottom: 18px;
+    }
+
+    .footer-links a {
+      color: #b0c8e5;
+      text-decoration: none;
+      transition: 0.2s;
+      font-size: 1.15rem;
+    }
+
+    .footer-links a:hover {
+      color: #FFD700;
+    }
+
+    .footer-bottom {
+      text-align: center;
+      padding-top: 50px;
+      margin-top: 50px;
+      border-top: 1px solid rgba(255,215,0,0.15);
+      color: #7a96b8;
+      max-width: 1600px;
+      margin-left: auto;
+      margin-right: auto;
+      padding-left: clamp(32px, 8vw, 80px);
+      padding-right: clamp(32px, 8vw, 80px);
+    }
+
+    /* ========== DETAIL PAGE ========== */
+    .detail-page-view {
+      max-width: 1200px;
+      margin: 80px auto;
+      padding: 24px;
+    }
+
+    .detail-card {
+      background: rgba(12, 20, 30, 0.65);
+      backdrop-filter: blur(30px);
+      border: 1.5px solid rgba(255,215,0,0.35);
+      border-radius: 64px;
+      padding: 72px 64px;
+      box-shadow: 0 50px 80px #000000b0, 0 0 80px #1e90ff40, inset 0 1px 0 rgba(255,255,255,0.1);
+      transform-style: preserve-3d;
+    }
+
+    .detail-logo {
+      font-size: 7rem;
+      text-align: center;
+      margin-bottom: 32px;
+      filter: drop-shadow(0 0 50px #7fc9ff);
+    }
+
+    .detail-title {
+      font-size: 4.5rem;
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 48px;
+      background: linear-gradient(145deg, #FFD700, #fff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .detail-desc {
+      background: #0c1620dd;
+      padding: 48px;
+      border-radius: 44px;
+      border-left: 10px solid #FFD700;
+      margin: 44px 0;
+      font-size: 1.35rem;
+      line-height: 1.9;
+    }
+
+    .order-wa-btn {
+      display: inline-block;
+      background: linear-gradient(145deg, #0f1e2c, #081018);
+      border: 2.5px solid #25D366;
+      color: white;
+      padding: 26px 60px;
+      border-radius: 60px;
+      font-weight: 700;
+      font-size: 1.7rem;
+      text-decoration: none;
+      box-shadow: 0 0 50px #1e90ff80, 0 15px 30px black, inset 0 1px 0 rgba(255,255,255,0.1);
+      transition: all 0.3s;
+      transform-style: preserve-3d;
+    }
+
+    .order-wa-btn i {
+      margin-right: 20px;
+      color: #25D366;
+      font-size: 2rem;
+    }
+
+    .order-wa-btn:hover {
+      background: #1a2e3f;
+      box-shadow: 0 0 70px #25D366, 0 0 50px gold;
+      border-color: gold;
+      transform: scale(1.03) translateZ(10px);
+    }
+
+    /* ========== UTILITIES ========== */
+    .hidden-page {
+      display: none !important;
+    }
+
+    .back-link {
+      color: #FFD966;
+      margin-top: 40px;
+      display: inline-block;
+      font-weight: 600;
+      font-size: 1.2rem;
+      transition: 0.2s;
+    }
+
+    .back-link:hover {
+      color: #fff;
+      text-shadow: 0 0 15px #1e90ff;
+    }
+
+    /* Responsive */
+    @media (max-width: 1400px) {
+      .tools-grid { grid-template-columns: repeat(3, 320px); }
+    }
+    @media (max-width: 1050px) {
+      .tools-grid { grid-template-columns: repeat(2, 320px); }
+      .hero-grid { grid-template-columns: 1fr; }
+      .features-grid { grid-template-columns: repeat(2, 1fr); }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .footer-content { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 700px) {
+      .tools-grid { grid-template-columns: 1fr; }
+      .tool-card { width: 100%; max-width: 350px; margin: 0 auto; }
+      .features-grid { grid-template-columns: 1fr; }
+      .stats-grid { grid-template-columns: 1fr; }
+      .footer-content { grid-template-columns: 1fr; }
+      .glass-panel { padding: 48px 32px; }
+      .about-preview-box { padding: 56px 36px; }
+      .section-title { font-size: 2.8rem; }
+    }
+
+    .si { color: #e0ecff; }
+    .tool-card:hover .si { color: white; }
+    .fa-infinity { color: #FFD966; }
+  </style>
+</head>
+<body>
+  <!-- 3D Canvas Background -->
+  <div id="canvas-container"></div>
+
+  <!-- LOADING SCREEN -->
+  <div id="global-loader">
+    <div class="loader-container">
+      <div class="loader-3d-text">FDH</div>
+      <div class="loader-sub">FAWAD DIGITAL HUB</div>
+      <div class="loader-progress">
+        <div class="loader-progress-bar"></div>
+      </div>
+      <div class="loader-percentage" id="loaderPercentage">0%</div>
+    </div>
+  </div>
+
+  <!-- POPUP -->
+  <div class="popup-overlay" id="mainPopup">
+    <div class="popup-card">
+      <div class="popup-title">Fawad Digital Hub</div>
+      <div class="popup-message">Join our official WhatsApp community to stay updated with the latest premium tools, exclusive offers, and digital resources.</div>
+      <button class="popup-btn" id="popupWaBtn"><i class="fab fa-whatsapp"></i> Join WhatsApp Group</button>
+      <div class="popup-close" id="closePopup">✕ Close</div>
+    </div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">FDH</div>
+    </div>
+    <ul class="sidebar-menu">
+      <li><a href="#" data-nav="dashboard"><i class="fas fa-th-large"></i> Dashboard</a></li>
+      <li><a href="#" data-nav="about"><i class="fas fa-building"></i> About Us</a></li>
+      <li><a href="#" data-nav="contact"><i class="fas fa-address-card"></i> Contact Us</a></li>
+      <li><a href="#" data-nav="terms"><i class="fas fa-shield-alt"></i> Terms & Conditions</a></li>
+    </ul>
+  </div>
+
+  <!-- MENU TOGGLE -->
+  <div class="menu-toggle-btn" id="menuToggle">
+    <i class="fas fa-bars"></i>
+  </div>
+
+  <!-- MAIN APP -->
+  <div id="app-content">
+    <div id="dashboard-view">
+      <!-- Hero -->
+      <section class="full-width" style="padding-bottom: 60px;">
+        <div class="hero-grid">
+          <div class="hero-left">
+            <h1>Fawad<br>Digital Hub</h1>
+            <div class="hero-desc">Premium Digital Tools • Minimal Cost • Maximum Power</div>
+            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+              <span style="background: #1e90ff20; padding: 16px 36px; border-radius: 50px; border: 1.5px solid gold; font-size: 1.15rem; font-weight: 600; backdrop-filter: blur(10px);">✨ 700+ Premium Tools</span>
+              <span style="background: #1e90ff20; padding: 16px 36px; border-radius: 50px; border: 1.5px solid gold; font-size: 1.15rem; font-weight: 600; backdrop-filter: blur(10px);">🔒 100% Secure Access</span>
+            </div>
+          </div>
+          <div class="hero-right">
+            <img src="https://i.ibb.co/r2YsmxHk/quality-restoration-20260415213828887.jpg" alt="Fawad Digital Hub Banner">
+          </div>
+        </div>
+      </section>
+
+      <!-- Tools Section -->
+      <section class="full-width">
+        <div class="section-header">
+          <h2 class="section-title">Premium Tools Collection</h2>
+          <p style="color: #a0bcdd; margin-top: 24px; font-size: 1.35rem;">Access 700+ world-class digital tools at minimal cost</p>
+        </div>
+        <div class="tools-wrapper">
+          <div class="tools-grid" id="toolsGridContainer"></div>
+        </div>
+      </section>
+
+      <!-- Why Choose Us -->
+      <section class="full-width">
+        <div class="section-header">
+          <h2 class="section-title">Why Choose Fawad Digital Hub</h2>
+          <p style="color: #a0bcdd; margin-top: 24px; font-size: 1.35rem;">The premium choice for creators, entrepreneurs, and digital professionals</p>
+        </div>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
+            <h3>100% Secure & Verified</h3>
+            <p>All accounts are verified, private, and encrypted with enterprise-grade protection.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-bolt"></i></div>
+            <h3>Instant Delivery</h3>
+            <p>Get access to your premium tools within minutes. Fast and seamless activation.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-headset"></i></div>
+            <h3>24/7 Premium Support</h3>
+            <p>Dedicated support team available round the clock via WhatsApp.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-tags"></i></div>
+            <h3>Minimal Cost, Maximum Value</h3>
+            <p>Save up to 80% compared to official subscriptions.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-sync-alt"></i></div>
+            <h3>Lifetime & Renewable Plans</h3>
+            <p>Flexible plans including lifetime access and affordable subscriptions.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-users"></i></div>
+            <h3>Trusted by 7000+ Users</h3>
+            <p>Join a growing community of satisfied creators worldwide.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Stats -->
+      <section class="full-width">
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-number">700+</div>
+            <div class="stat-label">Premium Tools</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number">7000+</div>
+            <div class="stat-label">Happy Customers</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number">24/7</div>
+            <div class="stat-label">Support Available</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number">100%</div>
+            <div class="stat-label">Secure & Private</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- About Preview -->
+      <section class="full-width">
+        <div class="about-preview-box">
+          <h3>Fawad Digital Hub — Premium Digital Ecosystem</h3>
+          <p>
+            We are a premier digital platform providing exclusive, verified access to the world's most powerful creative, AI, and productivity tools. 
+            Our mission is to democratize premium software, making innovation accessible to creators, entrepreneurs, and students worldwide — at minimal cost.
+          </p>
+          <div class="tag-container">
+            <span class="premium-tag">Adobe Creative Cloud</span>
+            <span class="premium-tag">AI & Machine Learning</span>
+            <span class="premium-tag">Envato Elements</span>
+            <span class="premium-tag">Canva Pro</span>
+            <span class="premium-tag">Video Editing</span>
+            <span class="premium-tag">SEO & Marketing</span>
+            <span class="premium-tag">Productivity</span>
+            <span class="premium-tag">Design Resources</span>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- TOOL DETAIL PAGE -->
+    <div id="tool-detail-view" class="detail-page-view hidden-page">
+      <div class="detail-card" id="detailContent"></div>
+      <div style="text-align:center;"><a href="#" id="backFromDetail" class="back-link"><i class="fas fa-arrow-left"></i> Back to Dashboard</a></div>
+    </div>
+
+    <!-- ABOUT -->
+    <section id="about-view" class="full-width hidden-page">
+      <div class="glass-panel">
+        <h2 class="section-title" style="margin-bottom: 52px;">About Fawad Digital Hub</h2>
+        <div class="about-text">
+          <p style="font-size: 1.9rem; margin-bottom: 36px;"><strong>What is Fawad Digital Hub?</strong></p>
+          <p>Fawad Digital Hub is a premium digital ecosystem providing exclusive, verified access to 700+ world-class creative, AI, and productivity tools — at minimal cost. We serve creators, entrepreneurs, agencies, and students who demand professional-grade resources without the premium price tag.</p>
+          <br>
+          <p><strong>🚀 Mission:</strong> To democratize access to premium software and digital assets, empowering innovation worldwide through trust, transparency, and exceptional service.</p>
+          <br>
+          <p><strong>💎 خدمات (Services):</strong> We offer verified accounts, shared access, and lifetime deals for 700+ tools. Every subscription is private, encrypted, and backed by dedicated support.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section id="contact-view" class="full-width hidden-page">
+      <div class="glass-panel">
+        <h2 class="section-title" style="margin-bottom: 52px;">Contact Us</h2>
+        <div class="contact-block">
+          <i class="fab fa-whatsapp"></i>
+          <a href="https://wa.me/923137583046" style="color:white; text-decoration:none;">+92 313 7583046</a>
+        </div>
+        <p style="margin-top: 48px; font-size: 1.35rem;">Available 24/7 for inquiries. Clean, premium support.</p>
+      </div>
+    </section>
+
+    <!-- TERMS -->
+    <section id="terms-view" class="full-width hidden-page">
+      <div class="glass-panel">
+        <h2 class="section-title" style="margin-bottom: 52px;">Terms & Privacy</h2>
+        <div class="about-text">
+          <p>🔐 <strong>100% secure services.</strong> All subscriptions are private and encrypted. Customer data is never shared or sold.</p>
+          <p>📜 <strong>Private subscriptions:</strong> Each account is verified and delivered under fair use / educational licensing where applicable.</p>
+          <p>⚖️ By using Fawad Digital Hub services, you agree to our professional code of conduct and terms of service.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="premium-footer">
+      <div class="footer-content">
+        <div class="footer-brand">
+          <h3>Fawad Digital Hub</h3>
+          <p>Premium Digital Tools • Minimal Cost • Maximum Power</p>
+          <p style="margin-top: 24px;"><i class="fas fa-map-marker-alt" style="color: #FFD966; margin-right: 12px;"></i> Serving Creators Worldwide</p>
+        </div>
+        <div class="footer-links">
+          <h4>Quick Links</h4>
+          <ul>
+            <li><a href="#" data-nav="dashboard">Dashboard</a></li>
+            <li><a href="#" data-nav="about">About Us</a></li>
+            <li><a href="#" data-nav="contact">Contact</a></li>
+            <li><a href="#" data-nav="terms">Terms & Privacy</a></li>
+          </ul>
+        </div>
+        <div class="footer-links">
+          <h4>Premium Tools</h4>
+          <ul>
+            <li><a href="#">Adobe Suite</a></li>
+            <li><a href="#">AI Tools</a></li>
+            <li><a href="#">Design Resources</a></li>
+            <li><a href="#">Video & Audio</a></li>
+          </ul>
+        </div>
+        <div class="footer-links">
+          <h4>Connect</h4>
+          <ul>
+            <li><a href="https://wa.me/923137583046"><i class="fab fa-whatsapp"></i> WhatsApp</a></li>
+            <li><a href="#"><i class="fab fa-telegram"></i> Telegram</a></li>
+            <li><a href="#"><i class="far fa-envelope"></i> Email</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2026 Fawad Digital Hub. All rights reserved. | Premium Digital Tools Ecosystem</p>
+        <p style="margin-top: 16px; font-size: 1rem;">🔒 100% Secure • Private Subscriptions • Encrypted Data • Trusted by 7000+ Users</p>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    // 3D Background
+    (function init3DBackground() {
+      const container = document.getElementById('canvas-container');
+      const scene = new THREE.Scene();
+      scene.background = null;
+      
+      const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.z = 30;
+      
+      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      container.appendChild(renderer.domElement);
+      
+      // Floating particles
+      const particlesGeometry = new THREE.BufferGeometry();
+      const particlesCount = 2000;
+      const posArray = new Float32Array(particlesCount * 3);
+      
+      for(let i = 0; i < particlesCount * 3; i += 3) {
+        posArray[i] = (Math.random() - 0.5) * 100;
+        posArray[i+1] = (Math.random() - 0.5) * 100;
+        posArray[i+2] = (Math.random() - 0.5) * 100;
+      }
+      
+      particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+      
+      const particlesMaterial = new THREE.PointsMaterial({
+        size: 0.08,
+        color: 0x4a9eff,
+        transparent: true,
+        opacity: 0.6,
+        blending: THREE.AdditiveBlending
+      });
+      
+      const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+      scene.add(particlesMesh);
+      
+      // Add some gold particles
+      const goldGeometry = new THREE.BufferGeometry();
+      const goldCount = 500;
+      const goldArray = new Float32Array(goldCount * 3);
+      for(let i = 0; i < goldCount * 3; i += 3) {
+        goldArray[i] = (Math.random() - 0.5) * 120;
+        goldArray[i+1] = (Math.random() - 0.5) * 120;
+        goldArray[i+2] = (Math.random() - 0.5) * 120;
+      }
+      goldGeometry.setAttribute('position', new THREE.BufferAttribute(goldArray, 3));
+      const goldMaterial = new THREE.PointsMaterial({
+        size: 0.1,
+        color: 0xFFD700,
+        transparent: true,
+        opacity: 0.4,
+        blending: THREE.AdditiveBlending
+      });
+      const goldMesh = new THREE.Points(goldGeometry, goldMaterial);
+      scene.add(goldMesh);
+      
+      let mouseX = 0, mouseY = 0;
+      document.addEventListener('mousemove', (e) => {
+        mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+        mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+      });
+      
+      function animate() {
+        requestAnimationFrame(animate);
+        particlesMesh.rotation.y += 0.0002;
+        particlesMesh.rotation.x += 0.0001;
+        goldMesh.rotation.y -= 0.0003;
+        goldMesh.rotation.x += 0.00015;
+        
+        camera.position.x += (mouseX * 5 - camera.position.x) * 0.01;
+        camera.position.y += (mouseY * 5 - camera.position.y) * 0.01;
+        camera.lookAt(scene.position);
+        
+        renderer.render(scene, camera);
+      }
+      animate();
+      
+      window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+    })();
+
+    // Main App
+    (function(){
+      "use strict";
+
+      const toolsData = [
+        { name: "ChatGPT", icon: "si-openai", desc: "Advanced AI assistant. GPT-4, vision, plugins.", badge: "AI" },
+        { name: "Gemini", icon: "si-google", desc: "Google DeepMind multimodal AI.", badge: "AI" },
+        { name: "Canva", icon: "si-canva", desc: "Professional design suite.", badge: "Design" },
+        { name: "CapCut", icon: "si-capcut", desc: "AI video editor, auto captions.", badge: "Video" },
+        { name: "Photoshop", icon: "si-adobephotoshop", desc: "Industry photo editing.", badge: "Adobe" },
+        { name: "Premiere Pro", icon: "si-adobepremierepro", desc: "Pro video editing.", badge: "Adobe" },
+        { name: "After Effects", icon: "si-adobeaftereffects", desc: "Motion graphics & VFX.", badge: "Adobe" },
+        { name: "Envato", icon: "si-envato", desc: "Unlimited creative assets.", badge: "Assets" },
+        { name: "Freepik", icon: "si-freepik", desc: "Vectors, PSDs, icons.", badge: "Design" },
+        { name: "Grammarly", icon: "si-grammarly", desc: "AI writing assistant.", badge: "Writing" },
+        { name: "Quillbot", icon: "si-quillbot", desc: "Paraphrasing tool.", badge: "Writing" },
+        { name: "Netflix", icon: "si-netflix", desc: "Premium UHD streaming.", badge: "Entertainment" },
+        { name: "Spotify", icon: "si-spotify", desc: "Ad-free music.", badge: "Music" },
+        { name: "YouTube Premium", icon: "si-youtube", desc: "Background play, no ads.", badge: "Video" },
+        { name: "Figma", icon: "si-figma", desc: "Collaborative UI design.", badge: "Design" },
+        { name: "Notion AI", icon: "si-notion", desc: "AI workspace.", badge: "Productivity" },
+        { name: "MidJourney", icon: "fa-solid fa-palette", desc: "AI art generation.", badge: "AI" },
+        { name: "Leonardo AI", icon: "fa-solid fa-bolt", desc: "Game assets, image gen.", badge: "AI" },
+        { name: "Runway ML", icon: "fa-solid fa-video", desc: "AI video tools.", badge: "AI" },
+        { name: "Jasper", icon: "si-jasper", desc: "AI copywriting.", badge: "Writing" },
+        { name: "Copy.ai", icon: "fa-regular fa-copy", desc: "Marketing copy.", badge: "Writing" },
+        { name: "SEMrush", icon: "si-semrush", desc: "SEO toolkit.", badge: "SEO" },
+        { name: "Ahrefs", icon: "si-ahrefs", desc: "Backlink analysis.", badge: "SEO" }
+      ];
+
+      const body = document.body;
+      const loader = document.getElementById('global-loader');
+      const percentageEl = document.getElementById('loaderPercentage');
+      const popup = document.getElementById('mainPopup');
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      const menuToggle = document.getElementById('menuToggle');
+      
+      const dashboardView = document.getElementById('dashboard-view');
+      const detailView = document.getElementById('tool-detail-view');
+      const aboutView = document.getElementById('about-view');
+      const contactView = document.getElementById('contact-view');
+      const termsView = document.getElementById('terms-view');
+      const detailContent = document.getElementById('detailContent');
+      
+      const allViews = [dashboardView, detailView, aboutView, contactView, termsView];
+
+      // Loading with percentage
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += 2;
+        if (progress <= 100) {
+          percentageEl.textContent = progress + '%';
+        }
+        if (progress >= 100) {
+          clearInterval(interval);
+          setTimeout(() => {
+            body.classList.add('loaded');
+            setTimeout(() => popup.classList.add('show'), 600);
+          }, 200);
+        }
+      }, 30);
+
+      document.getElementById('popupWaBtn').addEventListener('click', () => {
+        window.open('https://chat.whatsapp.com/HfBmNRDGEf7BG5r2c70LFi?mode=gi_t', '_blank');
+      });
+      document.getElementById('closePopup').addEventListener('click', () => popup.classList.remove('show'));
+
+      menuToggle.addEventListener('click', () => {
+        sidebar.classList.add('open');
+        overlay.classList.add('show');
+      });
+      overlay.addEventListener('click', () => {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('show');
+      });
+
+      function closeSidebar() {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('show');
+      }
+
+      function showView(viewId) {
+        allViews.forEach(v => v.classList.add('hidden-page'));
+        if (viewId === 'dashboard') dashboardView.classList.remove('hidden-page');
+        else if (viewId === 'about') aboutView.classList.remove('hidden-page');
+        else if (viewId === 'contact') contactView.classList.remove('hidden-page');
+        else if (viewId === 'terms') termsView.classList.remove('hidden-page');
+        closeSidebar();
+        window.scrollTo(0,0);
+      }
+
+      document.querySelectorAll('[data-nav]').forEach(link => {
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          showView(link.dataset.nav);
+        });
+      });
+
+      const grid = document.getElementById('toolsGridContainer');
+      function renderGrid() {
+        let html = '';
+        toolsData.forEach(t => {
+          const iconHtml = t.icon.startsWith('si-') ? `<i class="si ${t.icon}"></i>` : `<i class="${t.icon}"></i>`;
+          html += `<div class="tool-card" data-tool='${JSON.stringify(t).replace(/'/g, "&apos;")}'>
+            <div class="tool-logo">${iconHtml}</div>
+            <div class="tool-name">${t.name}</div>
+            <div class="tool-badge">${t.badge}</div>
+          </div>`;
+        });
+        html += `<div class="tool-card more-card"><div class="tool-logo"><i class="fas fa-infinity"></i></div><div class="tool-name">+ Many More</div><div class="tool-badge">700+ Tools</div></div>`;
+        grid.innerHTML = html;
+        
+        document.querySelectorAll('.tool-card[data-tool]').forEach(card => {
+          card.addEventListener('click', function() {
+            const tool = JSON.parse(this.dataset.tool);
+            const encoded = encodeURIComponent(tool.name);
+            const wa = `https://wa.me/923137583046?text=I%20want%20to%20buy%20${encoded}`;
+            const iconHtml = tool.icon.startsWith('si-') ? `<i class="si ${tool.icon}" style="font-size:7rem;"></i>` : `<i class="${tool.icon}" style="font-size:7rem;"></i>`;
+            
+            detailContent.innerHTML = `
+              <div class="detail-logo">${iconHtml}</div>
+              <div class="detail-title">${tool.name}</div>
+              <div class="detail-desc">
+                <p style="font-size:2rem; margin-bottom:28px; font-weight:700;">✨ Professional ${tool.name}</p>
+                <p><strong>Features:</strong> Premium full access, latest updates, priority support.</p>
+                <p><strong>Benefits:</strong> ${tool.desc}</p>
+                <p><strong>Use cases:</strong> Creative work, AI assistance, productivity, business growth.</p>
+                <p><strong>Category:</strong> ${tool.badge}</p>
+              </div>
+              <div style="text-align:center;">
+                <a href="${wa}" target="_blank" class="order-wa-btn"><i class="fab fa-whatsapp"></i> Order on WhatsApp</a>
+              </div>
+            `;
+            allViews.forEach(v => v.classList.add('hidden-page'));
+            detailView.classList.remove('hidden-page');
+            window.scrollTo(0,0);
+          });
+        });
+      }
+      renderGrid();
+
+      document.getElementById('backFromDetail').addEventListener('click', (e) => {
+        e.preventDefault();
+        allViews.forEach(v => v.classList.add('hidden-page'));
+        dashboardView.classList.remove('hidden-page');
+      });
+
+      document.querySelectorAll('.footer-links a[data-nav]').forEach(link => {
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          showView(link.dataset.nav);
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
